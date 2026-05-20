@@ -3,7 +3,8 @@ using UnityEngine;
 public class PlayerAnim : MonoBehaviour
 {
     [Header("Components")]
-    [SerializeField] private Animator animator;    
+    [SerializeField] private Animator animator;
+    private PlayerMove playerMove;
 
     private string MoveSpeedname = "MoveSpeed";
     private int MoveSpeedHash;
@@ -16,6 +17,10 @@ public class PlayerAnim : MonoBehaviour
         {
             Debug.Log("Animator component is missing!");
         }
+        playerMove = GetComponent<PlayerMove>();
+
+        playerMove.MoveSpeedChanged += SetMoveSpeed;
+        playerMove.Jumpforce += SetJump;
 
         MoveSpeedHash = Animator.StringToHash(MoveSpeedname);
         JumpHash = Animator.StringToHash(JumpName);
@@ -24,8 +29,8 @@ public class PlayerAnim : MonoBehaviour
     { 
         animator.SetFloat(MoveSpeedHash, speed);
     }
-    public void SetJump(bool isJumping)
+    public void SetJump()
     { 
-        animator.SetBool(JumpHash, isJumping);
+        animator.SetTrigger(JumpHash);
     }
 }

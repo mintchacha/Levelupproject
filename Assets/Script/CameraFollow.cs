@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class CameraFollow : MonoBehaviour
 {
-    [SerializeField] private PlayerManger playerManger;
+    [SerializeField] private InputPrivider inputProvider;
     [SerializeField] private Transform followTarget;
     private Camera cam;
 
@@ -27,7 +27,7 @@ public class CameraFollow : MonoBehaviour
 
     private void LateUpdate()
     {
-        Vector2 mouseVector = playerManger.inputProvider.lookInputValue;
+        Vector2 mouseVector = inputProvider.lookInputValue;
 
         float mouseX = mouseVector.x / Screen.width;
         float mouseY = mouseVector.y / Screen.height;

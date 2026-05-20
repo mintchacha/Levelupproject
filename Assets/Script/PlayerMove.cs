@@ -1,17 +1,27 @@
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using static UnityEditor.Timeline.TimelinePlaybackControls;
 
 public class PlayerMove : MonoBehaviour
 {
     [Header("Components")]
-    [SerializeField] private PlayerManger PlayerManger;
     [SerializeField] private Transform focusCamera;
     private Rigidbody playerRb;
+    private InputPrivider inputProvider;
+    private PlayerAnim playeranim;
 
     private Transform playerPosition;
+    public event Action<float> MoveSpeedChanged;
+    public event Action Jumpforce;
 
-    private Vector2 moveValue;
+    private Vector2 moveInputValue;
+    private bool isSprint;
+    Vector3 moveDir;
+
     private bool isGrounded;
+    private float currentSpeed;
+    private bool isJumpInput = false;
 
     public float moveSpeed = 2f;
     public float sprintSpeed = 5f;
@@ -20,30 +30,26 @@ public class PlayerMove : MonoBehaviour
 
     private void Awake()
     {
-        if (PlayerManger == null)
-        { 
-            Debug.Log("PlayerManger reference is missing!");
-            return;
-        }
-        playerPosition = PlayerManger.GetComponent<Transform>();
-        playerRb = PlayerManger.GetComponent<Rigidbody>();
-        if (playerRb == null) 
-        {
-            Debug.Log("Rigidbody component is missing!");
-            return;
-        }
-    }
-    private void Update()
-    {
+        playerPosition = GetComponent<Transform>();
+        playerRb = GetComponent<Rigidbody>();
+        inputProvider = GetComponent<InputPrivider>();
+        playeranim = GetComponent<PlayerAnim>();
 
-        moveValue = PlayerManger.inputProvider.moveInputValue;
-        Move();
+        inputProvider.moveAction.performed += Move;
+        inputProvider.moveAction.canceled += Move;
+
+        inputProvider.sprintAction.performed += Sprint;
+        inputProvider.sprintAction.canceled += Sprint;
+
+        inputProvider.jumpAction.performed += Jump;
     }
     private void FixedUpdate()
     {
-        if (PlayerManger.inputProvider.jumpInputValue && isGrounded)
+        MoveAction();
+
+        if (isJumpInput && isGrounded)
         {
-            Jump();
+            JumpAction();
         }
     }
     private void OnCollisionEnter(Collision other)
@@ -51,11 +57,21 @@ public class PlayerMove : MonoBehaviour
         if (other.gameObject.CompareTag("Ground") && !isGrounded)
         {
             isGrounded = true;
+            isJumpInput = false;
         }
     }
 
-    private void Move()
-    {        
+    private void Move(InputAction.CallbackContext context)
+    {
+        moveInputValue = context.ReadValue<Vector2>();
+    }
+    private void Sprint(InputAction.CallbackContext context)
+    {
+        isSprint = context.ReadValueAsButton();
+    }
+
+    private void MoveAction()
+    {
         Vector3 CameraForward = focusCamera.forward;
         Vector3 CameraRight = focusCamera.right;
 
@@ -65,14 +81,17 @@ public class PlayerMove : MonoBehaviour
         CameraForward.Normalize();
         CameraRight.Normalize();
 
-        Vector3 moveDir = CameraRight * moveValue.x + CameraForward * moveValue.y;
-        float currentSpeed = PlayerManger.inputProvider.sprintInputValue ? sprintSpeed : moveSpeed;
+        moveDir = CameraRight * moveInputValue.x + CameraForward * moveInputValue.y;
+
+        currentSpeed = isSprint ? sprintSpeed : moveSpeed;
+
+        Vector3  velocity = moveDir * currentSpeed;
+        velocity.y = playerRb.linearVelocity.y;
+        playerRb.linearVelocity = velocity;
 
         if (moveDir.sqrMagnitude > 0.01f)
         {
-            playerPosition.position += moveDir * currentSpeed * Time.deltaTime;
-
-            bool isBackMove = moveValue.y <= 0f;
+            bool isBackMove = moveInputValue.y <= 0f;
 
             if (!isBackMove)
             {
@@ -81,19 +100,20 @@ public class PlayerMove : MonoBehaviour
             }
         }
 
-
-        float moveSpeedParam = moveValue.magnitude * currentSpeed;
-        PlayerManger.playeranim.SetMoveSpeed(moveSpeedParam);
+        float moveSpeedParam = moveInputValue.sqrMagnitude * currentSpeed;        
+        MoveSpeedChanged?.Invoke(moveSpeedParam);
     }
 
-    private void Jump()
+    private void Jump(InputAction.CallbackContext context)
+    {
+        isJumpInput = context.ReadValueAsButton();
+    }
+    private void JumpAction()
     {
         isGrounded = false;
         playerRb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
 
-        PlayerManger.playeranim.SetJump(PlayerManger.inputProvider.jumpInputValue);
-        
-        PlayerManger.inputProvider.ConsumeJumpInput();
+        Jumpforce?.Invoke();
     }
-       
+
 }
