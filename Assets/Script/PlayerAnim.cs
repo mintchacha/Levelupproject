@@ -5,11 +5,14 @@ public class PlayerAnim : MonoBehaviour
     [Header("Components")]
     [SerializeField] private Animator animator;
     private PlayerMove playerMove;
+    private PlayerCombatController playerCombatController;
 
     private string MoveSpeedname = "MoveSpeed";
     private int MoveSpeedHash;
     private string JumpName = "Jump";
     private int JumpHash;
+    private string AttackName = "Attack";
+    private int AttackHash;
 
     private void Awake()
     {
@@ -18,12 +21,23 @@ public class PlayerAnim : MonoBehaviour
             Debug.Log("Animator component is missing!");
         }
         playerMove = GetComponent<PlayerMove>();
-
-        playerMove.MoveSpeedChanged += SetMoveSpeed;
-        playerMove.Jumpforce += SetJump;
+        playerCombatController = GetComponent<PlayerCombatController>();
 
         MoveSpeedHash = Animator.StringToHash(MoveSpeedname);
         JumpHash = Animator.StringToHash(JumpName);
+        AttackHash = Animator.StringToHash(AttackName);
+    }
+    private void OnEnable()
+    {
+        playerMove.MoveSpeedChanged += SetMoveSpeed;
+        playerMove.Jumpforce += SetJump;
+        playerCombatController.attackEvent += SetAttack;
+    }
+    private void OnDisable()
+    {
+        playerMove.MoveSpeedChanged -= SetMoveSpeed;
+        playerMove.Jumpforce -= SetJump;
+        playerCombatController.attackEvent -= SetAttack;
     }
     public void SetMoveSpeed(float speed)
     { 
@@ -33,4 +47,9 @@ public class PlayerAnim : MonoBehaviour
     { 
         animator.SetTrigger(JumpHash);
     }
+    public void SetAttack()
+    {
+        animator.SetTrigger(AttackHash);
+    }
+
 }
