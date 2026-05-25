@@ -2,12 +2,14 @@ using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Playables;
 
 public class PlayerMove : MonoBehaviour
 {
     [Header("Components")]
     private Rigidbody playerRb;
     private InputPrivider inputProvider;
+    private PlayerStatus playerState;
 
     private Transform playerPosition;
     public event Action<float> MoveSpeedChanged;
@@ -35,6 +37,7 @@ public class PlayerMove : MonoBehaviour
         playerPosition = GetComponent<Transform>();
         playerRb = GetComponent<Rigidbody>();
         inputProvider = GetComponent<InputPrivider>();
+        playerState = GetComponent<PlayerStatus>();
 
         inputProvider.moveAction.performed += Move;
         inputProvider.moveAction.canceled += Move;
@@ -48,7 +51,7 @@ public class PlayerMove : MonoBehaviour
     {
         MoveAction();
 
-        if (isJumpInput && isGrounded)
+        if (isJumpInput && isGrounded && playerState.state != State.Die)
         {
             JumpAction();
         }
@@ -72,6 +75,13 @@ public class PlayerMove : MonoBehaviour
     } 
     private void MoveAction()
     {
+        if (playerState.state == State.Die)        
+        {
+            playerRb.angularVelocity = Vector3.zero;
+            playerRb.linearVelocity = Vector3.zero;
+            return;
+        }
+
         Vector3 focus = inputProvider.lookInputValue;
         yaw += focus.x * aimSpeed;
         focus.y = 0f;

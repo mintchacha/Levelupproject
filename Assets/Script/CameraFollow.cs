@@ -2,6 +2,7 @@ using UnityEngine;
 
 public class CameraFollow : MonoBehaviour
 {
+    [SerializeField] PlayerStatus targetStatus;
     [SerializeField] private InputPrivider inputProvider;
     [SerializeField] private Transform followTarget;
     private Camera cam;

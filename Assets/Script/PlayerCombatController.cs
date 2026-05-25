@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using static UnityEngine.InputSystem.Controls.AxisControl;
 
 public class PlayerCombatController : MonoBehaviour, IDamagerble
 {
@@ -13,6 +14,7 @@ public class PlayerCombatController : MonoBehaviour, IDamagerble
 
     public event Action attackEvent;
     public event Action damagedAction;
+    public event Action dieAction;
 
     public float currentHp;
 
@@ -73,6 +75,7 @@ public class PlayerCombatController : MonoBehaviour, IDamagerble
 
         currentHp -= amount;
         damagedAction?.Invoke();
+        Debug.Log("¾ÆÇÄ");
         if (currentHp <= 0)
         {
             Dead();
@@ -80,6 +83,11 @@ public class PlayerCombatController : MonoBehaviour, IDamagerble
     }
     public void Dead()
     {
-        Destroy(gameObject);
+        dieAction?.Invoke();
+    }
+
+    public void Health(float amount) 
+    {
+        currentHp = Mathf.Clamp(currentHp + amount, 0, status.maxHp);        
     }
 }

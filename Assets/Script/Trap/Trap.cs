@@ -21,7 +21,7 @@ public class Trap : MonoBehaviour
 
         if (isEffect) return;
 
-        StartCoroutine(Effect());
+        StartCoroutine(Effect(colider.gameObject));
 
 
         IDamagerble target = colider.GetComponent<IDamagerble>();
@@ -33,10 +33,16 @@ public class Trap : MonoBehaviour
         }
     }
 
-    private IEnumerator Effect()
+    private IEnumerator Effect(GameObject target)
     {
         isEffect = true;
+        PlayerStatus state = target.GetComponent<PlayerStatus>();        
         yield return wait;
-        isEffect = false;
+        
+        if (state.state != State.Die)
+        { 
+            isEffect = false;
+        }
+
     }
 }

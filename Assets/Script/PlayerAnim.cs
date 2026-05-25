@@ -15,6 +15,8 @@ public class PlayerAnim : MonoBehaviour
     private int AttackHash;
     private string damageName = "Damage";
     private int damageHash;
+    private string dieName = "Die";
+    private int dieHash;
     private void Awake()
     {
         if (animator == null)
@@ -28,6 +30,7 @@ public class PlayerAnim : MonoBehaviour
         JumpHash = Animator.StringToHash(JumpName);
         AttackHash = Animator.StringToHash(AttackName);
         damageHash = Animator.StringToHash(damageName);
+        dieHash = Animator.StringToHash(dieName);
     }
     private void OnEnable()
     {
@@ -35,6 +38,7 @@ public class PlayerAnim : MonoBehaviour
         playerMove.Jumpforce += SetJump;
         playerCombatController.attackEvent += SetAttack;
         playerCombatController.damagedAction += SetDamage;
+        playerCombatController.dieAction += SetDie;
     }
     private void OnDisable()
     {
@@ -42,6 +46,7 @@ public class PlayerAnim : MonoBehaviour
         playerMove.Jumpforce -= SetJump;
         playerCombatController.attackEvent -= SetAttack;
         playerCombatController.damagedAction += SetDamage;
+        playerCombatController.dieAction += SetDie;
     }
     public void SetMoveSpeed(float speed)
     { 
@@ -58,6 +63,10 @@ public class PlayerAnim : MonoBehaviour
     public void SetDamage()
     {
         animator.SetTrigger(damageHash);
+    }
+    public void SetDie()
+    {
+        animator.SetTrigger(dieHash);
     }
 
 }
